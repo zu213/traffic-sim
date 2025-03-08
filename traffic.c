@@ -36,8 +36,8 @@ typedef struct {
 // important editable variables
 #define ENTRIES 4
 
-int traffic[ENTRIES] = {1,2,3,4}; // how many come from each entry per round
-int arrivalTraffic[ENTRIES] = {1,2,3,4};
+int traffic[ENTRIES] = {1,3,1,1}; // how many come from each entry per round
+int arrivalTraffic[ENTRIES] = {1,2,1,1};
 int frameCounter = 0;
 int overflows[ENTRIES];
 coord entryCoords[ENTRIES]; // entry locations
@@ -233,7 +233,7 @@ void changeOverflow(int index, int increase){
 
 void animateTraffic(){
     // SLEEP - this will change speed snow falls
-    //Sleep(1);
+    Sleep(1);
     for(int i =0; i< ENTRIES; i++){
         if((frameCounter * arrivalTraffic[i]) % 1000 < arrivalTraffic[i]){
             changeOverflow(i, 1);
@@ -241,7 +241,8 @@ void animateTraffic(){
     }
     frameCounter += 1;
 
-    if(completed >= traffic[currentEntry] || (overflows[currentEntry] == 0 && 1000 <= frameCounter * arrivalTraffic[currentEntry] && completed == added)){
+    if(completed >= traffic[currentEntry] ||
+     (overflows[currentEntry] == 0 && 1000 <= frameCounter * arrivalTraffic[currentEntry] && completed == added)){
         completed = 0;
         added = 0;
         currentEntry += 1;
@@ -254,10 +255,7 @@ void animateTraffic(){
     }
 
     // check whcihc is current entry and how many cars ahve been added/completed
-    if(added < traffic[currentEntry] && clear == 1){ //add a car
-        printf("Adsd %d %d \n",  entryCoords[currentEntry].x,  entryCoords[currentEntry].y);
-        printf("Adsd %d %d \n",  entryCoords[currentExit].x,  entryCoords[currentExit].y);
-        printf("Adsd %d %d \n",  currentEntry,  currentExit);
+    if(added < traffic[currentEntry] && clear == 1 && overflows[currentEntry] > 0){ //add a car
 
         currentExit %= ENTRIES;
         cars[added].x = entryCoords[currentEntry].x;
@@ -284,18 +282,12 @@ void animateTraffic(){
     // move each car for each frame
 
     for(int i = 0; i < added; i++){
-            //printf("eeeaaa");
             if(cars[i].completed){
                 continue;
             }
             //move right
             int carPixel = cars[i].y * WIDTH + cars[i].x;
-            if(i == 1){
-                printf("%d %d %d %d \n", cars[1].x, cars[1].destX, cars[1].xPreferred, cars[1].x < cars[1].destX);
-            }
             if(cars[i].x < cars[i].destX && cars[i].xPreferred){
-                printf("ee");
-                //printf("%d %d %d %d \n", cars[1].x, cars[1].destX, cars[i].xPreferred, cars[i].x < cars[i].destX);
                 pixels[carPixel] = RGB(0, 0, 0);
                 pixels[carPixel + 1] = RGB(255, 255, 255);
                 cars[i].x += 1;
