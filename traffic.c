@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+#include "test.h"
+
 //C:\Users\evilm\mingw64\bin\gcc.exe traffic.c -o traffic.exe -lgdi32 -luser32
 
 // Predefined variables
@@ -20,18 +22,42 @@ int random;
 typedef struct {
     int x;
     int y;
-    int visible;
     int destX;
     int destY;
+    int xPreferred;
+    int completed;
 } car;
 
-// important editable variables
-#define ENTRIES 7
+typedef struct {
+    int x;
+    int y;
+} coord;
 
-int traffic[ENTRIES];
-int entryCoords[ENTRIES];
-int numberOfCars = 0;
-car *cars; // = (car *)malloc(sizeof(car));
+// important editable variables
+#define ENTRIES 4
+
+int traffic[ENTRIES] = {1,2,3,4}; // how many come from each entry per round
+coord entryCoords[ENTRIES]; // entry locations
+int numberOfCars = 0; // how many cars their are currently
+int currentEntry = 0;
+car *cars;
+int added = 0;
+int completed = 0;
+int clear = 1;
+int currentExit = 0;
+
+int maxValue(int * arr){
+    int max = 0;
+    int length = sizeof(arr) / sizeof(1);
+    for(int i = 0; i < length; i++){
+        if(arr[i] > max){
+            max = arr[i];
+        }
+    }
+    return max;
+}
+
+
 
 int setupRoads(){
     int tempEntries = ENTRIES;
@@ -39,6 +65,12 @@ int setupRoads(){
         // invalid road numbers
         return 1;
     }
+
+    entryCoords[0].x = PADDING;
+    entryCoords[0].y = 220;
+    entryCoords[1].x = WIDTH - PADDING;
+    entryCoords[1].y = 220;
+
     // Add two main roads
     for(int i = WIDTH * 190 + PADDING; i < WIDTH * 191 - PADDING; i++){
         pixels[i] = RGB(255, 255, 255);
@@ -60,6 +92,9 @@ int setupRoads(){
         for(int j = 0; j < 120; j++){
             pixels[counter - j * WIDTH] = RGB(255, 255, 255);
         }
+        entryCoords[2 + i].x = counter % WIDTH + 30;
+        entryCoords[2 + i].y = 70;
+
         for(int j = 0; j < 60;j ++){
             pixels[counter + j] = RGB(0, 0, 0);
         }
@@ -67,6 +102,7 @@ int setupRoads(){
         for(int j = 0; j < 120; j++){
             pixels[counter - j * WIDTH] = RGB(255, 255, 255);
         }
+        
     }
     // bottom roads and breaks
     remainingRoadSegments = (length - 60 * bottomEntries) / (bottomEntries + 1);
@@ -76,6 +112,9 @@ int setupRoads(){
         for(int j = 0; j < 120; j++){
             pixels[counter + j * WIDTH] = RGB(255, 255, 255);
         }
+        entryCoords[2 + topEntries + i].x = counter % WIDTH + 30;
+        entryCoords[2 + topEntries + i].y = HEIGHT - 70;
+
         for(int j = 0; j < 60;j ++){
             pixels[counter + j] = RGB(0, 0, 0);
         }
@@ -88,43 +127,104 @@ int setupRoads(){
 
 void animateTraffic(){
     // SLEEP - this will change speed snow falls
-    Sleep(50);
+    //Sleep(1);
+
+    if(completed >= traffic[currentEntry]){
+            printf("asdasda %d %d \n", currentEntry, completed);
+        completed = 0;
+        added = 0;
+        currentEntry += 1;
+        currentEntry %= ENTRIES;
+        //currentExit = 0;
+    } // change currentEntry completed = 0 added = 0
+
+    if(currentExit == currentEntry){
+        currentExit += 1;
+    }
+
+    // check whcihc is current entry and how many cars ahve been added/completed
+    if(added < traffic[currentEntry] && clear == 1){ //add a car
+        printf("Adsd %d %d \n",  entryCoords[currentEntry].x,  entryCoords[currentEntry].y);
+        printf("Adsd %d %d \n",  entryCoords[currentExit].x,  entryCoords[currentExit].y);
+        printf("Adsd %d %d \n",  currentEntry,  currentExit);
+
+        currentExit %= ENTRIES;
+        cars[added].x = entryCoords[currentEntry].x;
+        cars[added].y = entryCoords[currentEntry].y;
+        cars[added].destX = entryCoords[currentExit].x;
+        cars[added].destY = entryCoords[currentExit].y;
+        cars[added].completed = 0;
+        if(entryCoords[currentEntry].y == 220){
+            cars[added].xPreferred = 1;
+        }else{
+            cars[added].xPreferred = 0;
+        }
+        currentExit += 1;
+
+        added += 1;
+        clear = 0;
+    }
+   // printf("aaa");
+
+    if(abs(cars[added - 1].x - entryCoords[currentEntry].x) > 30 || abs(cars[added - 1].y - entryCoords[currentEntry].y) > 30){
+        clear = 1;
+    }
 
     // move each car for each frame
-    for(int i = 0; i < sizeof(cars)/sizeof(car); i++){
-        if(cars[i].visible == 2){
-            //move right
-            if(cars[i].x < cars[i].destX){
+    //printf("%d %d \n", cars[0].y, cars[0].destY);
 
+    for(int i = 0; i < added; i++){
+            //printf("eeeaaa");
+            if(cars[i].completed){
+                continue;
+            }
+            //move right
+            int carPixel = cars[i].y * WIDTH + cars[i].x;
+            if(i == 1){
+                printf("%d %d %d %d \n", cars[1].x, cars[1].destX, cars[1].xPreferred, cars[1].x < cars[1].destX);
+            }
+            if(cars[i].x < cars[i].destX && cars[i].xPreferred){
+                printf("ee");
+                //printf("%d %d %d %d \n", cars[1].x, cars[1].destX, cars[i].xPreferred, cars[i].x < cars[i].destX);
+                pixels[carPixel] = RGB(0, 0, 0);
+                pixels[carPixel + 1] = RGB(255, 255, 255);
+                cars[i].x += 1;
             }
             // move left
-            else if(cars[i].x > cars[i].destX){
-
+            else if(cars[i].x > cars[i].destX && cars[i].xPreferred){
+                pixels[carPixel] = RGB(0, 0, 0);
+                pixels[carPixel - 1] = RGB(255, 255, 255);
+                cars[i].x -= 1;
             }
             // move up
-            else if(cars[i].y > cars[i].destY){
-
+            else if(cars[i].y < cars[i].destY){
+                pixels[carPixel] = RGB(0, 0, 0);
+                pixels[carPixel + WIDTH] = RGB(255, 255, 255);
+                cars[i].y += 1;
             }
             // move down
             else if(cars[i].y > cars[i].destY){
-
+                pixels[carPixel] = RGB(0, 0, 0);
+                pixels[carPixel - WIDTH] = RGB(255, 255, 255);
+                cars[i].y -= 1;
+            } 
+        
+            else if(!cars[i].xPreferred){
+                cars[i].xPreferred = 1;
             }
             // delete the car
             else {
-                for(int j = i; j < sizeof(cars)/sizeof(car) - 1; j++) cars[j] = cars[j + 1];
-                // realloc mem
+                pixels[carPixel] = RGB(0, 0, 0);
+                completed += 1;
+                cars[i].completed = 1;
                 // At this point car shouldnt be visible
             }
 
             if(abs(cars[i].x - cars[i].destX) < 6 && abs(cars[i].y - cars[i].destY) < 6){
                 // remove/cleanup some of the car pixels
             }
-            
-        }
     }
 }
-
-
 
 // function to handle screen setup
 void setupScreen(HWND hwnd, WPARAM wParam, LPARAM lParam){
@@ -184,7 +284,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 int main() {
     // initialise random
     srand(time(NULL));
+    int carsLength = maxValue(traffic);
+    printf("%d ", carsLength);
+    cars = (car *)malloc(carsLength * sizeof(car));
 
+    add(5,3); // test for import
     // Setup window
     WNDCLASS wc = {0};
     wc.lpfnWndProc = WindowProc;
