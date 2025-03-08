@@ -37,6 +37,9 @@ typedef struct {
 #define ENTRIES 4
 
 int traffic[ENTRIES] = {1,2,3,4}; // how many come from each entry per round
+int arrivalTraffic[ENTRIES] = {1,2,3,4};
+int frameCounter = 0;
+int overflows[ENTRIES];
 coord entryCoords[ENTRIES]; // entry locations
 int numberOfCars = 0; // how many cars their are currently
 int currentEntry = 0;
@@ -125,9 +128,110 @@ int setupRoads(){
     }
 }
 
+void clearNumber(int x, int y){
+    for(int i = -10; i < 10; i++){
+        for(int j = -10; j < 10; j++){
+            pixels[x + j + (y+i) * WIDTH] =  RGB(0, 0, 0);
+        }
+    }
+}
+
+void displayDigit(int x, int y, int digit){
+    clearNumber(x,y);
+
+    // horizontal lines
+    if(digit == 2 || digit == 3 || digit == 5 || digit == 6 || digit == 8 || digit == 9 || digit == 0){
+        for(int i = -10; i < 10; i++){
+            pixels[x + i + (y + 9) * WIDTH] = RGB(255, 255, 255);
+        }
+    }
+    if(digit == 2 || digit == 3 || digit == 5 || digit == 6 || digit == 7 || digit == 8 || digit == 9 || digit == 0){
+        for(int i = -10; i < 10; i++){
+            pixels[x + i + (y - 9) * WIDTH] = RGB(255, 255, 255);
+        }
+    }
+    if(digit == 2 || digit == 3 || digit == 4 || digit == 5 || digit == 6 || digit == 8 || digit == 9){
+        for(int i = -10; i < 10; i++){
+            pixels[x + i + (y) * WIDTH] = RGB(255, 255, 255);
+        }
+    }
+
+    // vertical lines
+    if(digit == 1 || digit == 3 || digit == 4 || digit == 5 || digit == 6 || digit == 7 || digit == 8 || digit == 9 || digit == 0){
+        for(int i = 0; i < 10; i++){
+            pixels[x + 9 + (y + i) * WIDTH] = RGB(255, 255, 255);
+        }
+    }
+    if(digit == 1 || digit == 2 || digit == 3 || digit == 4 || digit == 7 || digit == 8 || digit == 9 || digit == 0){
+        for(int i = -10; i < 0; i++){
+            pixels[x + 9 + (y + i) * WIDTH] = RGB(255, 255, 255);
+        }
+    }
+    if(digit == 2 || digit == 6 || digit == 8 || digit == 0){
+        for(int i = 0; i < 10; i++){
+            pixels[x - 9 + (y + i) * WIDTH] = RGB(255, 255, 255);
+        }
+    }
+    if(digit == 4 || digit == 5 || digit == 6 || digit == 8 || digit == 9 || digit == 0){
+        for(int i = -10; i < 0; i++){
+            pixels[x - 9 + (y + i) * WIDTH] = RGB(255, 255, 255);
+        }
+    }
+ 
+        
+}
+
+void displayPlus(int x, int y){
+
+}
+
+void displayNumber(int x, int y, int number){
+    if(number > 100){
+        number = 99;
+        displayPlus(x + 20,y);
+    }
+    int digit = number % 10;
+    int tens = number / 10;
+    displayDigit(x + 10, y, digit);
+    if(tens > 0){
+        displayDigit(x - 10, y , tens);
+    }
+}
+
+void changeOverflow(int index, int increase){
+    if(increase){
+        overflows[index]++;
+    }else{
+        overflows[index]--;
+    }
+    if(overflows[index] < 101){
+        if(entryCoords[index].x == 220){
+            if(entryCoords[index].x < WIDTH / 2){
+                displayNumber(entryCoords[index].x - 30, entryCoords[index].y, overflows[index]);
+            }else{
+                displayNumber(entryCoords[index].x + 30, entryCoords[index].y, overflows[index]);
+            }
+        }
+        else if(entryCoords[index].y > 220){
+            displayNumber(entryCoords[index].x, entryCoords[index].y + 30, overflows[index]);
+
+        }
+        else {
+            displayNumber(entryCoords[index].x, entryCoords[index].y - 30, overflows[index]);
+
+        }
+    }
+}
+
 void animateTraffic(){
     // SLEEP - this will change speed snow falls
     //Sleep(1);
+    for(int i =0 ; i< ENTRIES;i++){
+        if((frameCounter * arrivalTraffic[i]) % 1000 == 0){
+            changeOverflow(i, 1);
+        }
+    }
+    frameCounter += 1;
 
     if(completed >= traffic[currentEntry]){
             printf("asdasda %d %d \n", currentEntry, completed);
@@ -285,8 +389,10 @@ int main() {
     // initialise random
     srand(time(NULL));
     int carsLength = maxValue(traffic);
-    printf("%d ", carsLength);
     cars = (car *)malloc(carsLength * sizeof(car));
+    for(int i = 0; i < ENTRIES; i++){
+        overflows[i] = 0;
+    }
 
     add(5,3); // test for import
     // Setup window
