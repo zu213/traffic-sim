@@ -116,7 +116,7 @@ int setupRoads(){
             pixels[counter + j * WIDTH] = RGB(255, 255, 255);
         }
         entryCoords[2 + topEntries + i].x = counter % WIDTH + 30;
-        entryCoords[2 + topEntries + i].y = HEIGHT - 70;
+        entryCoords[2 + topEntries + i].y = HEIGHT - 100;
 
         for(int j = 0; j < 60;j ++){
             pixels[counter + j] = RGB(0, 0, 0);
@@ -182,19 +182,24 @@ void displayDigit(int x, int y, int digit){
 }
 
 void displayPlus(int x, int y){
-
+    for(int i = -10; i < 10; i++){
+        pixels[x +  (y + i) * WIDTH] = RGB(255, 255, 255);
+    }
+    for(int i = -10; i < 10; i++){
+        pixels[x + i + (y) * WIDTH] = RGB(255, 255, 255);
+    }
 }
 
 void displayNumber(int x, int y, int number){
-    if(number > 100){
+    if(number > 99){
         number = 99;
-        displayPlus(x + 20,y);
+        displayPlus(x + 34, y);
     }
     int digit = number % 10;
     int tens = number / 10;
-    displayDigit(x + 10, y, digit);
+    displayDigit(x + 12, y, digit);
     if(tens > 0){
-        displayDigit(x - 10, y , tens);
+        displayDigit(x - 12, y , tens);
     }
 }
 
@@ -202,10 +207,13 @@ void changeOverflow(int index, int increase){
     if(increase){
         overflows[index]++;
     }else{
+        if(overflows[index] < 1){
+            return;
+        }
         overflows[index]--;
     }
     if(overflows[index] < 101){
-        if(entryCoords[index].x == 220){
+        if(entryCoords[index].y == 220){
             if(entryCoords[index].x < WIDTH / 2){
                 displayNumber(entryCoords[index].x - 30, entryCoords[index].y, overflows[index]);
             }else{
@@ -226,15 +234,14 @@ void changeOverflow(int index, int increase){
 void animateTraffic(){
     // SLEEP - this will change speed snow falls
     //Sleep(1);
-    for(int i =0 ; i< ENTRIES;i++){
-        if((frameCounter * arrivalTraffic[i]) % 1000 == 0){
+    for(int i =0; i< ENTRIES; i++){
+        if((frameCounter * arrivalTraffic[i]) % 1000 < arrivalTraffic[i]){
             changeOverflow(i, 1);
         }
     }
     frameCounter += 1;
 
-    if(completed >= traffic[currentEntry]){
-            printf("asdasda %d %d \n", currentEntry, completed);
+    if(completed >= traffic[currentEntry] || (overflows[currentEntry] == 0 && 1000 <= frameCounter * arrivalTraffic[currentEntry] && completed == added)){
         completed = 0;
         added = 0;
         currentEntry += 1;
@@ -263,19 +270,18 @@ void animateTraffic(){
         }else{
             cars[added].xPreferred = 0;
         }
-        currentExit += 1;
+        currentExit++;
 
-        added += 1;
+        added++;
+        changeOverflow(currentEntry, 0);
         clear = 0;
     }
-   // printf("aaa");
 
     if(abs(cars[added - 1].x - entryCoords[currentEntry].x) > 30 || abs(cars[added - 1].y - entryCoords[currentEntry].y) > 30){
         clear = 1;
     }
 
     // move each car for each frame
-    //printf("%d %d \n", cars[0].y, cars[0].destY);
 
     for(int i = 0; i < added; i++){
             //printf("eeeaaa");
