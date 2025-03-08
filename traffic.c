@@ -34,10 +34,10 @@ typedef struct {
 } coord;
 
 // important editable variables
-#define ENTRIES 4
+#define ENTRIES 5
 
-int traffic[ENTRIES] = {1,3,1,1}; // how many come from each entry per round
-int arrivalTraffic[ENTRIES] = {1,2,1,1};
+int traffic[ENTRIES] = {1,3,1,1,1}; // how many come from each entry per round
+int arrivalTraffic[ENTRIES] = {1,2,1,1,1};
 int frameCounter = 0;
 int overflows[ENTRIES];
 coord entryCoords[ENTRIES]; // entry locations
@@ -284,6 +284,9 @@ void animateTraffic(){
     for(int i = 0; i < added; i++){
             if(cars[i].completed){
                 continue;
+            }
+            if(cars[i].y == 220){
+                cars[i].xPreferred = 1;
             }
             //move right
             int carPixel = cars[i].y * WIDTH + cars[i].x;
