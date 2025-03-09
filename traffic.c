@@ -10,6 +10,7 @@
 #define WIDTH 640
 #define HEIGHT 480
 #define PADDING 120
+#define CARLENGTH 30
 const int length = WIDTH * HEIGHT;
 DWORD pixels[WIDTH * HEIGHT] = {0};
 HDC hdc;
@@ -231,6 +232,56 @@ void changeOverflow(int index, int increase){
     }
 }
 
+void clearCar(int x, int y){
+    for(int i = -CARLENGTH/2;i<CARLENGTH/2 + 1;i++){
+        for(int j = -CARLENGTH/2;j<CARLENGTH/2 + 1;j++){
+            pixels[WIDTH * (y + i) + (x + j)] = RGB(0,0,0);
+        }
+    }
+}
+
+void drawCar(int x, int y, int direction){
+    if(direction > 4 || direction < 1){
+        return;
+    }
+    clearCar(x,y);
+    pixels[HEIGHT * (y) + (x)] = RGB(0,0,0);
+
+    // left
+    if(direction == 1){
+        x--;
+    }
+    //right
+    else if(direction == 2){
+        x++;
+    }
+    // up
+    else if(direction == 3){
+        y--;
+    }
+    // down
+    else{
+        y++;
+    }
+    // left side
+    //pixels[WIDTH * (y) + (x)] = RGB(255,255,255);
+
+    //return;
+    printf("%d %d \n", x, y);
+    for(int i = -CARLENGTH/2; i < CARLENGTH/2; i++){
+        pixels[WIDTH * (y + i) + (x - CARLENGTH/2)] = RGB(255,255,255);
+    }
+    for(int i = -CARLENGTH/2; i < CARLENGTH/2; i++){
+        pixels[WIDTH * (y + i) + (x + CARLENGTH/2)] = RGB(255,255,255);
+    }
+    for(int i = -CARLENGTH/2; i < CARLENGTH/2; i++){
+        pixels[WIDTH * (y + CARLENGTH/2) + (x + i)] = RGB(255,255,255);
+    }
+    for(int i = -CARLENGTH/2; i < CARLENGTH/2; i++){
+        pixels[WIDTH * (y  - CARLENGTH/2) + (x + i)] = RGB(255,255,255);
+    }
+}
+
 void animateTraffic(){
     // SLEEP - this will change speed snow falls
     Sleep(1);
@@ -290,27 +341,33 @@ void animateTraffic(){
             }
             //move right
             int carPixel = cars[i].y * WIDTH + cars[i].x;
+                            printf("%d %d \n",cars[i].x, added);
+
             if(cars[i].x < cars[i].destX && cars[i].xPreferred){
-                pixels[carPixel] = RGB(0, 0, 0);
-                pixels[carPixel + 1] = RGB(255, 255, 255);
+                //pixels[carPixel] = RGB(0, 0, 0);
+                //pixels[carPixel + 1] = RGB(255, 255, 255);
+                drawCar(cars[i].x, cars[i].y, 2);
                 cars[i].x += 1;
             }
             // move left
             else if(cars[i].x > cars[i].destX && cars[i].xPreferred){
-                pixels[carPixel] = RGB(0, 0, 0);
-                pixels[carPixel - 1] = RGB(255, 255, 255);
+                //pixels[carPixel] = RGB(0, 0, 0);
+                //pixels[carPixel - 1] = RGB(255, 255, 255);
+                drawCar(cars[i].x, cars[i].y, 1);
                 cars[i].x -= 1;
             }
             // move up
             else if(cars[i].y < cars[i].destY){
-                pixels[carPixel] = RGB(0, 0, 0);
-                pixels[carPixel + WIDTH] = RGB(255, 255, 255);
+                //pixels[carPixel] = RGB(0, 0, 0);
+                //pixels[carPixel + WIDTH] = RGB(255, 255, 255);
+                drawCar(cars[i].x, cars[i].y, 4);
                 cars[i].y += 1;
             }
             // move down
             else if(cars[i].y > cars[i].destY){
-                pixels[carPixel] = RGB(0, 0, 0);
-                pixels[carPixel - WIDTH] = RGB(255, 255, 255);
+                //pixels[carPixel] = RGB(0, 0, 0);
+                //pixels[carPixel - WIDTH] = RGB(255, 255, 255);
+                drawCar(cars[i].x, cars[i].y, 3);
                 cars[i].y -= 1;
             } 
         
