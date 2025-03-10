@@ -10,7 +10,7 @@
 #define WIDTH 640
 #define HEIGHT 480
 #define PADDING 120
-#define CARLENGTH 30
+#define CARLENGTH 20
 const int length = WIDTH * HEIGHT;
 DWORD pixels[WIDTH * HEIGHT] = {0};
 HDC hdc;
@@ -35,10 +35,10 @@ typedef struct {
 } coord;
 
 // important editable variables
-#define ENTRIES 5
+#define ENTRIES 2
 
-int traffic[ENTRIES] = {1,3,1,1,1}; // how many come from each entry per round
-int arrivalTraffic[ENTRIES] = {1,2,1,1,1};
+int traffic[ENTRIES] = {1,3}; // how many come from each entry per round
+int arrivalTraffic[ENTRIES] = {1,2};
 int frameCounter = 0;
 int overflows[ENTRIES];
 coord entryCoords[ENTRIES]; // entry locations
@@ -61,7 +61,38 @@ int maxValue(int * arr){
     return max;
 }
 
+void paintLight(int x, int y, int colour){
+    if(colour < 0 || colour > 1){
+        return;
+    }
+    if(colour == 0){
+        for(int i = -1; i < 2; i++){
+            for(int j = -1; j < 2; j++){
+                pixels[(x+ j) + (y + i) * WIDTH] = RGB(0, 0, 255);
+         }
+        }
+    }else{
+        for(int i = -1; i < 2; i++){
+            for(int j = -1; j < 2; j++){
+                pixels[(x+ j) + (y + i) * WIDTH] = RGB(0, 255, 0);
+         }
+        }
+    }
+}
 
+void changeLight(int x, int y, int colour){
+    if(y < 220){
+            paintLight(x - 30, y, colour);
+        }else if(y > 220){
+            paintLight(x + 30, y, colour);
+        }else{
+            if(x < WIDTH / 2){
+                paintLight(x, y + 30, colour);
+            }else{
+                paintLight(x, y - 30, colour);
+            }
+        }
+}
 
 int setupRoads(){
     int tempEntries = ENTRIES;
@@ -127,6 +158,11 @@ int setupRoads(){
             pixels[counter + j * WIDTH] = RGB(255, 255, 255);
         }
     }
+
+    for(int i = 0; i < ENTRIES; i++){
+        changeLight(entryCoords[i].x, entryCoords[i].y, 0);
+    }
+    changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 1);
 }
 
 void clearNumber(int x, int y){
@@ -182,6 +218,8 @@ void displayDigit(int x, int y, int digit){
         
 }
 
+
+
 void displayPlus(int x, int y){
     for(int i = -10; i < 10; i++){
         pixels[x +  (y + i) * WIDTH] = RGB(255, 255, 255);
@@ -216,17 +254,17 @@ void changeOverflow(int index, int increase){
     if(overflows[index] < 101){
         if(entryCoords[index].y == 220){
             if(entryCoords[index].x < WIDTH / 2){
-                displayNumber(entryCoords[index].x - 30, entryCoords[index].y, overflows[index]);
+                displayNumber(entryCoords[index].x - 50, entryCoords[index].y, overflows[index]);
             }else{
-                displayNumber(entryCoords[index].x + 30, entryCoords[index].y, overflows[index]);
+                displayNumber(entryCoords[index].x + 50, entryCoords[index].y, overflows[index]);
             }
         }
         else if(entryCoords[index].y > 220){
-            displayNumber(entryCoords[index].x, entryCoords[index].y + 30, overflows[index]);
+            displayNumber(entryCoords[index].x, entryCoords[index].y + 50, overflows[index]);
 
         }
         else {
-            displayNumber(entryCoords[index].x, entryCoords[index].y - 30, overflows[index]);
+            displayNumber(entryCoords[index].x, entryCoords[index].y - 50, overflows[index]);
 
         }
     }
@@ -245,40 +283,45 @@ void drawCar(int x, int y, int direction){
         return;
     }
     clearCar(x,y);
-    pixels[HEIGHT * (y) + (x)] = RGB(0,0,0);
-
+    int carLength;
+    int carWidth;
     // left
     if(direction == 1){
         x--;
+        carLength = CARLENGTH/2;
+        carWidth = carLength/2;
     }
     //right
     else if(direction == 2){
         x++;
+        carLength = CARLENGTH/2;
+        carWidth = carLength/2;
     }
     // up
     else if(direction == 3){
         y--;
+        carWidth = CARLENGTH/2;
+        carLength = carWidth/2;
     }
     // down
     else{
         y++;
+        carWidth = CARLENGTH/2;
+        carLength = carWidth/2;
     }
     // left side
-    //pixels[WIDTH * (y) + (x)] = RGB(255,255,255);
 
-    //return;
-    printf("%d %d \n", x, y);
-    for(int i = -CARLENGTH/2; i < CARLENGTH/2; i++){
-        pixels[WIDTH * (y + i) + (x - CARLENGTH/2)] = RGB(255,255,255);
+    for(int i = -carWidth; i < carWidth; i++){
+        pixels[WIDTH * (y + i) + (x - carLength)] = RGB(255,255,255);
     }
-    for(int i = -CARLENGTH/2; i < CARLENGTH/2; i++){
-        pixels[WIDTH * (y + i) + (x + CARLENGTH/2)] = RGB(255,255,255);
+    for(int i = -carWidth; i < carWidth; i++){
+        pixels[WIDTH * (y + i) + (x + carLength)] = RGB(255,255,255);
     }
-    for(int i = -CARLENGTH/2; i < CARLENGTH/2; i++){
-        pixels[WIDTH * (y + CARLENGTH/2) + (x + i)] = RGB(255,255,255);
+    for(int i = -carLength; i < carLength; i++){
+        pixels[WIDTH * (y + carWidth) + (x + i)] = RGB(255,255,255);
     }
-    for(int i = -CARLENGTH/2; i < CARLENGTH/2; i++){
-        pixels[WIDTH * (y  - CARLENGTH/2) + (x + i)] = RGB(255,255,255);
+    for(int i = -carLength; i < carLength; i++){
+        pixels[WIDTH * (y  - carWidth) + (x + i)] = RGB(255,255,255);
     }
 }
 
@@ -296,8 +339,10 @@ void animateTraffic(){
      (overflows[currentEntry] == 0 && 1000 <= frameCounter * arrivalTraffic[currentEntry] && completed == added)){
         completed = 0;
         added = 0;
+        changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 0);
         currentEntry += 1;
         currentEntry %= ENTRIES;
+        changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 1);
         //currentExit = 0;
     } // change currentEntry completed = 0 added = 0
 
@@ -324,10 +369,14 @@ void animateTraffic(){
         added++;
         changeOverflow(currentEntry, 0);
         clear = 0;
+        
     }
 
     if(abs(cars[added - 1].x - entryCoords[currentEntry].x) > 30 || abs(cars[added - 1].y - entryCoords[currentEntry].y) > 30){
         clear = 1;
+        if(added == traffic[currentEntry]){
+            changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 0);
+        }
     }
 
     // move each car for each frame
@@ -341,7 +390,6 @@ void animateTraffic(){
             }
             //move right
             int carPixel = cars[i].y * WIDTH + cars[i].x;
-                            printf("%d %d \n",cars[i].x, added);
 
             if(cars[i].x < cars[i].destX && cars[i].xPreferred){
                 //pixels[carPixel] = RGB(0, 0, 0);
@@ -378,6 +426,7 @@ void animateTraffic(){
             else {
                 pixels[carPixel] = RGB(0, 0, 0);
                 completed += 1;
+                clearCar(cars[i].x, cars[i].y);
                 cars[i].completed = 1;
                 // At this point car shouldnt be visible
             }
