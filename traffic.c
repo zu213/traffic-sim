@@ -3,15 +3,23 @@
 #include <time.h>
 #include <stdlib.h>
 #include "test.h"
+#include "constants.h"
 
 //C:\Users\evilm\mingw64\bin\gcc.exe traffic.c -o traffic.exe -lgdi32 -luser32
+// C:\Users\evilm\mingw64\bin\gcc.exe traffic.c test.c -o traffic.exe -lgdi32 -luser32
 
 // Predefined variables
-#define WIDTH 640
-#define HEIGHT 480
-#define PADDING 120
-#define CARLENGTH 20
 const int length = WIDTH * HEIGHT;
+const int roadWidth = HEIGHT / 8;
+const int halfRoadWidth = HEIGHT / 16;
+const int topRoadHeight = HEIGHT / 2 - roadWidth / 2;
+const int bottomRoadHeight = HEIGHT / 2 + roadWidth / 2;
+const int verticalRoadLength = HEIGHT / 2 - PADDING - halfRoadWidth;
+const int counterNumberSize = PADDING / 6;
+
+const int black = RGB(0,0,0);
+const int white = RGB(255,255,255);
+
 DWORD pixels[WIDTH * HEIGHT] = {0};
 HDC hdc;
 HDC hdcMem;
@@ -27,20 +35,15 @@ typedef struct {
     int destY;
     int xPreferred;
     int completed;
+    int travelToMiddle;
 } car;
 
-typedef struct {
-    int x;
-    int y;
-} coord;
-
 // important editable variables
-#define ENTRIES 2
+#define ENTRIES 5
 
-int traffic[ENTRIES] = {1,3}; // how many come from each entry per round
-int arrivalTraffic[ENTRIES] = {1,2};
+int traffic[ENTRIES] = {1,2,3,4,5}; // how many come from each entry per round
+int arrivalTraffic[ENTRIES] = {1,2,2,2,3}; // how many cars arrive ina  tick of frames 1000
 int frameCounter = 0;
-int overflows[ENTRIES];
 coord entryCoords[ENTRIES]; // entry locations
 int numberOfCars = 0; // how many cars their are currently
 int currentEntry = 0;
@@ -81,15 +84,15 @@ void paintLight(int x, int y, int colour){
 }
 
 void changeLight(int x, int y, int colour){
-    if(y < 220){
-            paintLight(x - 30, y, colour);
-        }else if(y > 220){
-            paintLight(x + 30, y, colour);
+    if(y < topRoadHeight + halfRoadWidth){
+            paintLight(x - halfRoadWidth, y, colour);
+        }else if(y > topRoadHeight + halfRoadWidth){
+            paintLight(x + halfRoadWidth, y, colour);
         }else{
             if(x < WIDTH / 2){
-                paintLight(x, y + 30, colour);
+                paintLight(x, y + halfRoadWidth, colour);
             }else{
-                paintLight(x, y - 30, colour);
+                paintLight(x, y - halfRoadWidth, colour);
             }
         }
 }
@@ -102,16 +105,16 @@ int setupRoads(){
     }
 
     entryCoords[0].x = PADDING;
-    entryCoords[0].y = 220;
+    entryCoords[0].y = topRoadHeight + halfRoadWidth;
     entryCoords[1].x = WIDTH - PADDING;
-    entryCoords[1].y = 220;
+    entryCoords[1].y = topRoadHeight + halfRoadWidth;
 
     // Add two main roads
-    for(int i = WIDTH * 190 + PADDING; i < WIDTH * 191 - PADDING; i++){
-        pixels[i] = RGB(255, 255, 255);
+    for(int i = WIDTH * topRoadHeight + PADDING; i < WIDTH * (topRoadHeight + 1) - PADDING; i++){
+        pixels[i] = white;
     }
-    for(int i = WIDTH * 250 + PADDING; i < WIDTH * 251 - PADDING; i++){
-        pixels[i] = RGB(255, 255, 255);
+    for(int i = WIDTH * bottomRoadHeight + PADDING; i < WIDTH * (bottomRoadHeight + 1) - PADDING; i++){
+        pixels[i] = white;
     }
     tempEntries -= 2;
     int topEntries = tempEntries / 2;
@@ -119,43 +122,43 @@ int setupRoads(){
 
     // draw gaps and vertical roads
     int length = WIDTH - 2 * PADDING;
-    int remainingRoadSegments = (length - 60 * topEntries) / (topEntries + 1);
-    int counter = WIDTH * 190 + PADDING;
+    int remainingRoadSegments = (length - roadWidth * topEntries) / (topEntries + 1);
+    int counter = WIDTH * topRoadHeight + PADDING;
     // top roads and breaks
     for(int i = 0; i < topEntries; i++){
         counter += remainingRoadSegments;
-        for(int j = 0; j < 120; j++){
-            pixels[counter - j * WIDTH] = RGB(255, 255, 255);
+        for(int j = 0; j < verticalRoadLength; j++){
+            pixels[counter - j * WIDTH] = white;
         }
-        entryCoords[2 + i].x = counter % WIDTH + 30;
-        entryCoords[2 + i].y = 70;
+        entryCoords[2 + i].x = counter % WIDTH + halfRoadWidth;
+        entryCoords[2 + i].y = topRoadHeight - verticalRoadLength;
 
-        for(int j = 0; j < 60;j ++){
-            pixels[counter + j] = RGB(0, 0, 0);
+        for(int j = 0; j < roadWidth;j ++){
+            pixels[counter + j] = black;
         }
-        counter += 60;
-        for(int j = 0; j < 120; j++){
-            pixels[counter - j * WIDTH] = RGB(255, 255, 255);
+        counter += roadWidth;
+        for(int j = 0; j < verticalRoadLength; j++){
+            pixels[counter - j * WIDTH] = white;
         }
         
     }
     // bottom roads and breaks
-    remainingRoadSegments = (length - 60 * bottomEntries) / (bottomEntries + 1);
-    counter = PADDING + WIDTH * 250;
+    remainingRoadSegments = (length - roadWidth * bottomEntries) / (bottomEntries + 1);
+    counter = PADDING + WIDTH * bottomRoadHeight;
     for(int i = 0; i < bottomEntries; i++){
         counter += remainingRoadSegments;
-        for(int j = 0; j < 120; j++){
-            pixels[counter + j * WIDTH] = RGB(255, 255, 255);
+        for(int j = 0; j < verticalRoadLength; j++){
+            pixels[counter + j * WIDTH] = white;
         }
-        entryCoords[2 + topEntries + i].x = counter % WIDTH + 30;
-        entryCoords[2 + topEntries + i].y = HEIGHT - 100;
+        entryCoords[2 + topEntries + i].x = counter % WIDTH + halfRoadWidth;
+        entryCoords[2 + topEntries + i].y = bottomRoadHeight + verticalRoadLength;
 
-        for(int j = 0; j < 60;j ++){
-            pixels[counter + j] = RGB(0, 0, 0);
+        for(int j = 0; j < roadWidth;j ++){
+            pixels[counter + j] = black;
         }
         counter += 60;
-        for(int j = 0; j < 120; j++){
-            pixels[counter + j * WIDTH] = RGB(255, 255, 255);
+        for(int j = 0; j < verticalRoadLength; j++){
+            pixels[counter + j * WIDTH] = white;
         }
     }
 
@@ -163,111 +166,6 @@ int setupRoads(){
         changeLight(entryCoords[i].x, entryCoords[i].y, 0);
     }
     changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 1);
-}
-
-void clearNumber(int x, int y){
-    for(int i = -10; i < 10; i++){
-        for(int j = -10; j < 10; j++){
-            pixels[x + j + (y+i) * WIDTH] =  RGB(0, 0, 0);
-        }
-    }
-}
-
-void displayDigit(int x, int y, int digit){
-    clearNumber(x,y);
-
-    // horizontal lines
-    if(digit == 2 || digit == 3 || digit == 5 || digit == 6 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = -10; i < 10; i++){
-            pixels[x + i + (y + 9) * WIDTH] = RGB(255, 255, 255);
-        }
-    }
-    if(digit == 2 || digit == 3 || digit == 5 || digit == 6 || digit == 7 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = -10; i < 10; i++){
-            pixels[x + i + (y - 9) * WIDTH] = RGB(255, 255, 255);
-        }
-    }
-    if(digit == 2 || digit == 3 || digit == 4 || digit == 5 || digit == 6 || digit == 8 || digit == 9){
-        for(int i = -10; i < 10; i++){
-            pixels[x + i + (y) * WIDTH] = RGB(255, 255, 255);
-        }
-    }
-
-    // vertical lines
-    if(digit == 1 || digit == 3 || digit == 4 || digit == 5 || digit == 6 || digit == 7 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = 0; i < 10; i++){
-            pixels[x + 9 + (y + i) * WIDTH] = RGB(255, 255, 255);
-        }
-    }
-    if(digit == 1 || digit == 2 || digit == 3 || digit == 4 || digit == 7 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = -10; i < 0; i++){
-            pixels[x + 9 + (y + i) * WIDTH] = RGB(255, 255, 255);
-        }
-    }
-    if(digit == 2 || digit == 6 || digit == 8 || digit == 0){
-        for(int i = 0; i < 10; i++){
-            pixels[x - 9 + (y + i) * WIDTH] = RGB(255, 255, 255);
-        }
-    }
-    if(digit == 4 || digit == 5 || digit == 6 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = -10; i < 0; i++){
-            pixels[x - 9 + (y + i) * WIDTH] = RGB(255, 255, 255);
-        }
-    }
- 
-        
-}
-
-
-
-void displayPlus(int x, int y){
-    for(int i = -10; i < 10; i++){
-        pixels[x +  (y + i) * WIDTH] = RGB(255, 255, 255);
-    }
-    for(int i = -10; i < 10; i++){
-        pixels[x + i + (y) * WIDTH] = RGB(255, 255, 255);
-    }
-}
-
-void displayNumber(int x, int y, int number){
-    if(number > 99){
-        number = 99;
-        displayPlus(x + 34, y);
-    }
-    int digit = number % 10;
-    int tens = number / 10;
-    displayDigit(x + 12, y, digit);
-    if(tens > 0){
-        displayDigit(x - 12, y , tens);
-    }
-}
-
-void changeOverflow(int index, int increase){
-    if(increase){
-        overflows[index]++;
-    }else{
-        if(overflows[index] < 1){
-            return;
-        }
-        overflows[index]--;
-    }
-    if(overflows[index] < 101){
-        if(entryCoords[index].y == 220){
-            if(entryCoords[index].x < WIDTH / 2){
-                displayNumber(entryCoords[index].x - 50, entryCoords[index].y, overflows[index]);
-            }else{
-                displayNumber(entryCoords[index].x + 50, entryCoords[index].y, overflows[index]);
-            }
-        }
-        else if(entryCoords[index].y > 220){
-            displayNumber(entryCoords[index].x, entryCoords[index].y + 50, overflows[index]);
-
-        }
-        else {
-            displayNumber(entryCoords[index].x, entryCoords[index].y - 50, overflows[index]);
-
-        }
-    }
 }
 
 void clearCar(int x, int y){
@@ -312,16 +210,16 @@ void drawCar(int x, int y, int direction){
     // left side
 
     for(int i = -carWidth; i < carWidth; i++){
-        pixels[WIDTH * (y + i) + (x - carLength)] = RGB(255,255,255);
+        pixels[WIDTH * (y + i) + (x - carLength)] = white;
     }
     for(int i = -carWidth; i < carWidth; i++){
-        pixels[WIDTH * (y + i) + (x + carLength)] = RGB(255,255,255);
+        pixels[WIDTH * (y + i) + (x + carLength)] = white;
     }
     for(int i = -carLength; i < carLength; i++){
-        pixels[WIDTH * (y + carWidth) + (x + i)] = RGB(255,255,255);
+        pixels[WIDTH * (y + carWidth) + (x + i)] = white;
     }
     for(int i = -carLength; i < carLength; i++){
-        pixels[WIDTH * (y  - carWidth) + (x + i)] = RGB(255,255,255);
+        pixels[WIDTH * (y  - carWidth) + (x + i)] = white;
     }
 }
 
@@ -330,18 +228,20 @@ void animateTraffic(){
     Sleep(1);
     for(int i =0; i< ENTRIES; i++){
         if((frameCounter * arrivalTraffic[i]) % 1000 < arrivalTraffic[i]){
-            changeOverflow(i, 1);
+            changeOverflow(i, 1, entryCoords, pixels);
         }
     }
     frameCounter += 1;
 
+    // chaneg emitter
     if(completed >= traffic[currentEntry] ||
-     (overflows[currentEntry] == 0 && 1000 <= frameCounter * arrivalTraffic[currentEntry] && completed == added)){
+     (getOverflow(currentEntry) == 0 && 1000 <= frameCounter * arrivalTraffic[currentEntry] && completed == added)){
         completed = 0;
         added = 0;
         changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 0);
         currentEntry += 1;
         currentEntry %= ENTRIES;
+        Sleep(100);
         changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 1);
         //currentExit = 0;
     } // change currentEntry completed = 0 added = 0
@@ -351,7 +251,7 @@ void animateTraffic(){
     }
 
     // check whcihc is current entry and how many cars ahve been added/completed
-    if(added < traffic[currentEntry] && clear == 1 && overflows[currentEntry] > 0){ //add a car
+    if(added < traffic[currentEntry] && clear == 1 && getOverflow(currentEntry) > 0){ //add a car
 
         currentExit %= ENTRIES;
         cars[added].x = entryCoords[currentEntry].x;
@@ -359,20 +259,23 @@ void animateTraffic(){
         cars[added].destX = entryCoords[currentExit].x;
         cars[added].destY = entryCoords[currentExit].y;
         cars[added].completed = 0;
-        if(entryCoords[currentEntry].y == 220){
+        if(entryCoords[currentEntry].y == topRoadHeight + halfRoadWidth){
             cars[added].xPreferred = 1;
         }else{
             cars[added].xPreferred = 0;
         }
+        if(entryCoords[currentEntry].y == entryCoords[currentExit].y && entryCoords[currentEntry].y != topRoadHeight + halfRoadWidth){
+            cars[added].travelToMiddle = 1;
+        }
         currentExit++;
 
         added++;
-        changeOverflow(currentEntry, 0);
+        changeOverflow(currentEntry, 0, entryCoords, pixels);
         clear = 0;
         
     }
 
-    if(abs(cars[added - 1].x - entryCoords[currentEntry].x) > 30 || abs(cars[added - 1].y - entryCoords[currentEntry].y) > 30){
+    if(abs(cars[added - 1].x - entryCoords[currentEntry].x) > roadWidth || abs(cars[added - 1].y - entryCoords[currentEntry].y) > roadWidth){
         clear = 1;
         if(added == traffic[currentEntry]){
             changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 0);
@@ -380,41 +283,33 @@ void animateTraffic(){
     }
 
     // move each car for each frame
-
     for(int i = 0; i < added; i++){
             if(cars[i].completed){
                 continue;
             }
-            if(cars[i].y == 220){
+            if(cars[i].y == topRoadHeight + halfRoadWidth){
                 cars[i].xPreferred = 1;
+                cars[i].travelToMiddle = 0;
             }
             //move right
             int carPixel = cars[i].y * WIDTH + cars[i].x;
 
-            if(cars[i].x < cars[i].destX && cars[i].xPreferred){
-                //pixels[carPixel] = RGB(0, 0, 0);
-                //pixels[carPixel + 1] = RGB(255, 255, 255);
+            if(cars[i].x < cars[i].destX && cars[i].xPreferred && !cars[i].travelToMiddle){
                 drawCar(cars[i].x, cars[i].y, 2);
                 cars[i].x += 1;
             }
             // move left
-            else if(cars[i].x > cars[i].destX && cars[i].xPreferred){
-                //pixels[carPixel] = RGB(0, 0, 0);
-                //pixels[carPixel - 1] = RGB(255, 255, 255);
+            else if(cars[i].x > cars[i].destX && cars[i].xPreferred && !cars[i].travelToMiddle){
                 drawCar(cars[i].x, cars[i].y, 1);
                 cars[i].x -= 1;
             }
-            // move up
-            else if(cars[i].y < cars[i].destY){
-                //pixels[carPixel] = RGB(0, 0, 0);
-                //pixels[carPixel + WIDTH] = RGB(255, 255, 255);
+            // move down
+            else if(cars[i].y < cars[i].destY && !cars[i].travelToMiddle || (cars[i].travelToMiddle && cars[i].y < topRoadHeight + halfRoadWidth)){
                 drawCar(cars[i].x, cars[i].y, 4);
                 cars[i].y += 1;
             }
-            // move down
-            else if(cars[i].y > cars[i].destY){
-                //pixels[carPixel] = RGB(0, 0, 0);
-                //pixels[carPixel - WIDTH] = RGB(255, 255, 255);
+            // move up
+            else if(cars[i].y > cars[i].destY && !cars[i].travelToMiddle || (cars[i].travelToMiddle && cars[i].y > topRoadHeight + halfRoadWidth)){
                 drawCar(cars[i].x, cars[i].y, 3);
                 cars[i].y -= 1;
             } 
@@ -497,11 +392,7 @@ int main() {
     srand(time(NULL));
     int carsLength = maxValue(traffic);
     cars = (car *)malloc(carsLength * sizeof(car));
-    for(int i = 0; i < ENTRIES; i++){
-        overflows[i] = 0;
-    }
 
-    add(5,3); // test for import
     // Setup window
     WNDCLASS wc = {0};
     wc.lpfnWndProc = WindowProc;
