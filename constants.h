@@ -3,10 +3,13 @@
 #define HEIGHT 480
 #define PADDING 120
 #define CARLENGTH 20
-extern const int roadWidth2;
-extern const int halfRoadWidth2;
-extern const int topRoadHeight2;
-extern const int counterNumberSize2;
+extern const int roadWidth;
+extern const int halfRoadWidth;
+extern const int topRoadHeight;
+extern const int bottomRoadHeight;
+extern const int verticalRoadLength;
+extern const int counterNumberSize;
+extern const int counterNumberSize;
 
-extern const int black2;
-extern const int white2;
+extern const int black;
+extern const int white;

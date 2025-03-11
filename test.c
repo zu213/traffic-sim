@@ -6,13 +6,12 @@
 #include "test.h"
 #include "constants.h"
 
-
 int overflows[ENTRIES] = {0};
 
 void clearNumber(int x, int y, DWORD *pixels){
-    for(int i = -counterNumberSize2/2 - 1; i < counterNumberSize2/2 + 1; i++){
-        for(int j = -counterNumberSize2/2 - 1; j < counterNumberSize2/2 + 1; j++){
-            pixels[x + j + (y+i) * WIDTH] =  black2;
+    for(int i = -counterNumberSize/2 - 1; i < counterNumberSize/2 + 1; i++){
+        for(int j = -counterNumberSize/2 - 1; j < counterNumberSize/2 + 1; j++){
+            pixels[x + j + (y+i) * WIDTH] =  black;
         }
     }
 }
@@ -22,40 +21,40 @@ void displayDigit(int x, int y, int digit, DWORD *pixels){
 
     // horizontal lines
     if(digit == 2 || digit == 3 || digit == 5 || digit == 6 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = -counterNumberSize2/2; i < counterNumberSize2/2; i++){
-            pixels[x + i + (y + counterNumberSize2/2 - 1) * WIDTH] = white2;
+        for(int i = -counterNumberSize/2; i < counterNumberSize/2; i++){
+            pixels[x + i + (y + counterNumberSize/2 - 1) * WIDTH] = white;
         }
     }
     if(digit == 2 || digit == 3 || digit == 5 || digit == 6 || digit == 7 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = -counterNumberSize2/2; i < counterNumberSize2/2; i++){
-            pixels[x + i + (y - counterNumberSize2/2 + 1) * WIDTH] = white2;
+        for(int i = -counterNumberSize/2; i < counterNumberSize/2; i++){
+            pixels[x + i + (y - counterNumberSize/2 + 1) * WIDTH] = white;
         }
     }
     if(digit == 2 || digit == 3 || digit == 4 || digit == 5 || digit == 6 || digit == 8 || digit == 9){
-        for(int i = -counterNumberSize2/2; i < counterNumberSize2/2; i++){
-            pixels[x + i + (y) * WIDTH] = white2;
+        for(int i = -counterNumberSize/2; i < counterNumberSize/2; i++){
+            pixels[x + i + (y) * WIDTH] = white;
         }
     }
 
     // vertical lines
     if(digit == 1 || digit == 3 || digit == 4 || digit == 5 || digit == 6 || digit == 7 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = 0; i < counterNumberSize2/2; i++){
-            pixels[x + counterNumberSize2/2 - 1 + (y + i) * WIDTH] = white2;
+        for(int i = 0; i < counterNumberSize/2; i++){
+            pixels[x + counterNumberSize/2 - 1 + (y + i) * WIDTH] = white;
         }
     }
     if(digit == 1 || digit == 2 || digit == 3 || digit == 4 || digit == 7 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = -counterNumberSize2/2; i < 0; i++){
-            pixels[x + counterNumberSize2/2 - 1 + (y + i) * WIDTH] = white2;
+        for(int i = -counterNumberSize/2; i < 0; i++){
+            pixels[x + counterNumberSize/2 - 1 + (y + i) * WIDTH] = white;
         }
     }
     if(digit == 2 || digit == 6 || digit == 8 || digit == 0){
-        for(int i = 0; i < counterNumberSize2/2; i++){
-            pixels[x - counterNumberSize2/2 - 1 + (y + i) * WIDTH] = white2;
+        for(int i = 0; i < counterNumberSize/2; i++){
+            pixels[x - counterNumberSize/2 - 1 + (y + i) * WIDTH] = white;
         }
     }
     if(digit == 4 || digit == 5 || digit == 6 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = -counterNumberSize2/2; i < 0; i++){
-            pixels[x - counterNumberSize2/2 - 1 + (y + i) * WIDTH] = white2;
+        for(int i = -counterNumberSize/2; i < 0; i++){
+            pixels[x - counterNumberSize/2 - 1 + (y + i) * WIDTH] = white;
         }
     }
  
@@ -94,19 +93,19 @@ void changeOverflow(int index, int increase, coord entryCoords[], DWORD *pixels)
         overflows[index]--;
     }
     if(overflows[index] < 101){
-        if(entryCoords[index].y == topRoadHeight2 + halfRoadWidth2){
+        if(entryCoords[index].y == topRoadHeight + halfRoadWidth){
             if(entryCoords[index].x < WIDTH / 2){
-                displayNumber(entryCoords[index].x - roadWidth2, entryCoords[index].y, overflows[index], pixels);
+                displayNumber(entryCoords[index].x - roadWidth, entryCoords[index].y, overflows[index], pixels);
             }else{
-                displayNumber(entryCoords[index].x + roadWidth2, entryCoords[index].y, overflows[index], pixels);
+                displayNumber(entryCoords[index].x + roadWidth, entryCoords[index].y, overflows[index], pixels);
             }
         }
-        else if(entryCoords[index].y > topRoadHeight2 + halfRoadWidth2){
-            displayNumber(entryCoords[index].x, entryCoords[index].y + roadWidth2, overflows[index], pixels);
+        else if(entryCoords[index].y > topRoadHeight + halfRoadWidth){
+            displayNumber(entryCoords[index].x, entryCoords[index].y + roadWidth, overflows[index], pixels);
 
         }
         else {
-            displayNumber(entryCoords[index].x, entryCoords[index].y - roadWidth2, overflows[index], pixels);
+            displayNumber(entryCoords[index].x, entryCoords[index].y - roadWidth, overflows[index], pixels);
 
         }
     }

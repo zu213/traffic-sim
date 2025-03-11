@@ -8,18 +8,6 @@
 //C:\Users\evilm\mingw64\bin\gcc.exe traffic.c -o traffic.exe -lgdi32 -luser32
 // C:\Users\evilm\mingw64\bin\gcc.exe traffic.c test.c -o traffic.exe -lgdi32 -luser32
 
-// Predefined variables
-const int length = WIDTH * HEIGHT;
-const int roadWidth = HEIGHT / 8;
-const int halfRoadWidth = HEIGHT / 16;
-const int topRoadHeight = HEIGHT / 2 - roadWidth / 2;
-const int bottomRoadHeight = HEIGHT / 2 + roadWidth / 2;
-const int verticalRoadLength = HEIGHT / 2 - PADDING - halfRoadWidth;
-const int counterNumberSize = PADDING / 6;
-
-const int black = RGB(0,0,0);
-const int white = RGB(255,255,255);
-
 DWORD pixels[WIDTH * HEIGHT] = {0};
 HDC hdc;
 HDC hdcMem;
