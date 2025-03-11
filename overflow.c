@@ -1,10 +1,4 @@
-// utils.c
-#include <windows.h>
-#include <stdio.h>
-#include <time.h>
-#include <stdlib.h>
-#include "test.h"
-#include "constants.h"
+#include "overflow.h"
 
 int overflows[ENTRIES] = {0};
 
