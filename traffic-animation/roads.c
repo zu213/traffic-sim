@@ -9,23 +9,22 @@
 #include "cars.h"
 #include "roads.h"
 
-int random;
-int traffic[ENTRIES] = {1,2,3,4,5}; // how many come from each entry per round
-int arrivalTraffic[ENTRIES] = {1,2,2,2,3}; // how many cars arrive ina  tick of frames 1000
-car *cars;
+int traffic[ENTRIES] = {1,2,3,4,5}; // How many come from each entry per round
+int arrivalTraffic[ENTRIES] = {1,2,2,2,3}; // How many cars arrive in a tick of frames(1000)
 
-DWORD pixels[WIDTH * HEIGHT] = {RGB(255,0,0)};
+car *cars; // Main storgae for the existing cars
+DWORD pixels[WIDTH * HEIGHT] = {0}; // Pixels array
+coord entryCoords[ENTRIES]; // Entry coordinates for the roads
 
 int frameCounter = 0;
-coord entryCoords[ENTRIES]; // entry locations
-int numberOfCars = 0; // how many cars their are currently
+int numberOfCars = 0; // How many cars their are currently
 int currentEntry = 0;
-int added = 0;
-int completed = 0;
+int added = 0; // no. of added cars for this entry
+int completed = 0;  // no. of completed cars for this entry
 int clear = 1;
 int currentExit = 0;
 
-// helper function to find max value in an array
+// Helper function to find max value in an array
 int maxValue(int * arr){
     int max = 0;
     int length = sizeof(arr) / sizeof(1);
@@ -36,12 +35,6 @@ int maxValue(int * arr){
     }
     return max;
 }
-
-void initCars(){
-    int carsLength = maxValue(traffic);
-    cars = (car *)malloc(carsLength * sizeof(car));
-}
-
 
 void paintLight(int x, int y, int colour){
     if(colour < 0 || colour > 1){
@@ -76,12 +69,10 @@ void changeLight(int x, int y, int colour){
         }
 }
 
+// Main setup function for adding entry coords, drawing roads and traffic lights.
 void setupRoads(){
     int tempEntries = ENTRIES;
-    if(tempEntries < 2 || tempEntries > 10){
-        // invalid road numbers
-        return;
-    }
+    if(tempEntries < 2 || tempEntries > 10) return; // invalid road numbers
 
     entryCoords[0].x = PADDING;
     entryCoords[0].y = topRoadHeight + halfRoadWidth;
@@ -89,12 +80,9 @@ void setupRoads(){
     entryCoords[1].y = topRoadHeight + halfRoadWidth;
 
     // Add two main roads
-    for(int i = WIDTH * topRoadHeight + PADDING; i < WIDTH * (topRoadHeight + 1) - PADDING; i++){
-        pixels[i] = white;
-    }
-    for(int i = WIDTH * bottomRoadHeight + PADDING; i < WIDTH * (bottomRoadHeight + 1) - PADDING; i++){
-        pixels[i] = white;
-    }
+    for(int i = WIDTH * topRoadHeight + PADDING; i < WIDTH * (topRoadHeight + 1) - PADDING; i++) pixels[i] = white;
+    for(int i = WIDTH * bottomRoadHeight + PADDING; i < WIDTH * (bottomRoadHeight + 1) - PADDING; i++) pixels[i] = white;
+
     tempEntries -= 2;
     int topEntries = tempEntries / 2;
     int bottomEntries = tempEntries - topEntries;
@@ -106,47 +94,44 @@ void setupRoads(){
     // top roads and breaks
     for(int i = 0; i < topEntries; i++){
         counter += remainingRoadSegments;
-        for(int j = 0; j < verticalRoadLength; j++){
-            pixels[counter - j * WIDTH] = white;
-        }
+        for(int j = 0; j < verticalRoadLength; j++) pixels[counter - j * WIDTH] = white;
+
         entryCoords[2 + i].x = counter % WIDTH + halfRoadWidth;
         entryCoords[2 + i].y = topRoadHeight - verticalRoadLength;
 
-        for(int j = 0; j < roadWidth;j ++){
-            pixels[counter + j] = black;
-        }
+        for(int j = 0; j < roadWidth;j ++) pixels[counter + j] = black;
         counter += roadWidth;
-        for(int j = 0; j < verticalRoadLength; j++){
-            pixels[counter - j * WIDTH] = white;
-        }
-        
+
+        for(int j = 0; j < verticalRoadLength; j++) pixels[counter - j * WIDTH] = white;        
     }
     // bottom roads and breaks
     remainingRoadSegments = (length - roadWidth * bottomEntries) / (bottomEntries + 1);
     counter = PADDING + WIDTH * bottomRoadHeight;
     for(int i = 0; i < bottomEntries; i++){
         counter += remainingRoadSegments;
-        for(int j = 0; j < verticalRoadLength; j++){
-            pixels[counter + j * WIDTH] = white;
-        }
+        for(int j = 0; j < verticalRoadLength; j++) pixels[counter + j * WIDTH] = white;
+
         entryCoords[2 + topEntries + i].x = counter % WIDTH + halfRoadWidth;
         entryCoords[2 + topEntries + i].y = bottomRoadHeight + verticalRoadLength;
 
-        for(int j = 0; j < roadWidth;j ++){
-            pixels[counter + j] = black;
-        }
-        counter += 60;
-        for(int j = 0; j < verticalRoadLength; j++){
-            pixels[counter + j * WIDTH] = white;
-        }
+        for(int j = 0; j < roadWidth;j ++) pixels[counter + j] = black;
+        counter += roadWidth;
+
+        for(int j = 0; j < verticalRoadLength; j++) pixels[counter + j * WIDTH] = white;
     }
 
-    for(int i = 0; i < ENTRIES; i++){
-        changeLight(entryCoords[i].x, entryCoords[i].y, 0);
-    }
+    // Setup traffic lights
+    for(int i = 0; i < ENTRIES; i++) changeLight(entryCoords[i].x, entryCoords[i].y, 0);
     changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 1);
 }
 
+void initCars(){
+    int carsLength = maxValue(traffic);
+    cars = (car *)malloc(carsLength * sizeof(car));
+    setupRoads();
+}
+
+// Main animation function for moving/adding/counting/deleting traffic
 void animateTraffic(){
     Sleep(1);
     for(int i =0; i< ENTRIES; i++){
@@ -156,7 +141,7 @@ void animateTraffic(){
     }
     frameCounter += 1;
 
-    // chaneg emitter
+    // Change which road cars are leaving from
     if(completed >= traffic[currentEntry] ||
      (getOverflow(currentEntry) == 0 && 1000 <= frameCounter * arrivalTraffic[currentEntry] && completed == added)){
         completed = 0;
@@ -166,16 +151,11 @@ void animateTraffic(){
         currentEntry %= ENTRIES;
         Sleep(100);
         changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 1);
-        //currentExit = 0;
-    } // change currentEntry completed = 0 added = 0
-
-    if(currentExit == currentEntry){
-        currentExit += 1;
     }
 
-    // check whcihc is current entry and how many cars ahve been added/completed
+    if(currentExit == currentEntry) currentExit += 1; // make sure the exit /= the entry
+    // Add new cars (if need be)
     if(added < traffic[currentEntry] && clear == 1 && getOverflow(currentEntry) > 0){ //add a car
-
         currentExit %= ENTRIES;
         cars[added].x = entryCoords[currentEntry].x;
         cars[added].y = entryCoords[currentEntry].y;
@@ -194,28 +174,24 @@ void animateTraffic(){
         added++;
         changeOverflow(currentEntry, 0, entryCoords, pixels);
         clear = 0;
-        
     }
 
+    // Check if the car is far enough from the entry so a new one can be added
     if(abs(cars[added - 1].x - entryCoords[currentEntry].x) > roadWidth || abs(cars[added - 1].y - entryCoords[currentEntry].y) > roadWidth){
         clear = 1;
-        if(added == traffic[currentEntry]){
-            changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 0);
-        }
+        if(added == traffic[currentEntry]) changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 0);
     }
 
     // move each car for each frame
     for(int i = 0; i < added; i++){
-        if(cars[i].completed){
-            continue;
-        }
+        if(cars[i].completed) continue;
+
         if(cars[i].y == topRoadHeight + halfRoadWidth){
             cars[i].xPreferred = 1;
             cars[i].travelToMiddle = 0;
         }
-        //move right
         int carPixel = cars[i].y * WIDTH + cars[i].x;
-
+        //move right
         if(cars[i].x < cars[i].destX && cars[i].xPreferred && !cars[i].travelToMiddle){
             drawCar(cars[i].x, cars[i].y, 2, pixels);
             cars[i].x += 1;
@@ -235,7 +211,7 @@ void animateTraffic(){
             drawCar(cars[i].x, cars[i].y, 3, pixels);
             cars[i].y -= 1;
         } 
-    
+        // If it has x distance to do still do do it first unless travel to middle
         else if(!cars[i].xPreferred){
             cars[i].xPreferred = 1;
         }
@@ -245,7 +221,6 @@ void animateTraffic(){
             completed += 1;
             clearCar(cars[i].x, cars[i].y, pixels);
             cars[i].completed = 1;
-            // At this point car shouldnt be visible
         }
     }
 }

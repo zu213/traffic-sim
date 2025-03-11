@@ -3,22 +3,20 @@
 #include <time.h>
 #include <stdlib.h>
 
-#include "roads.h"
+#include "traffic-animation/roads.h"
 
 //C:\Users\evilm\mingw64\bin\gcc.exe traffic.c -o traffic.exe -lgdi32 -luser32
-// C:\Users\evilm\mingw64\bin\gcc.exe traffic.c test.c -o traffic.exe -lgdi32 -luser32
+// C:\Users\evilm\mingw64\bin\gcc.exe traffic.c traffic-animation/cars.c traffic-animation/constants.c traffic-animation/overflow.c traffic-animation/roads.c -o traffic.exe -lgdi32 -luser32
 
 HDC hdc;
 HDC hdcMem;
 HBITMAP hBitmap;
 BITMAPINFO bitmapInfo;
 
-
 // function to handle screen setup
 void setupScreen(HWND hwnd, WPARAM wParam, LPARAM lParam){
     hdc = GetDC(hwnd);
     hdcMem = CreateCompatibleDC(hdc);
-
     hBitmap = CreateCompatibleBitmap(hdc, WIDTH, HEIGHT);
     SelectObject(hdcMem, hBitmap);
 
@@ -35,16 +33,13 @@ void setupScreen(HWND hwnd, WPARAM wParam, LPARAM lParam){
 int counter = 0;
 
 void editScreen(HWND hwnd, WPARAM wParam, LPARAM lParam){
-
-    // needs to know waht road it is doing , therefore wht set of cars on rotation
-
+    // Main function to animate cars
     animateTraffic();
     // Update the bitmap with modified pixel data
     SetDIBits(hdcMem, hBitmap, 0, HEIGHT, pixels, &bitmapInfo, DIB_RGB_COLORS);
     BitBlt(hdc, 0, 0, WIDTH, HEIGHT, hdcMem, 0, 0, SRCCOPY);
 }
 
-// Windows procedure 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
         case WM_PAINT:
@@ -60,25 +55,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 }
 
 int main() {
-    // initialise random
-    srand(time(NULL));
-    initCars();
-    
-
     // Setup window
     WNDCLASS wc = {0};
     wc.lpfnWndProc = WindowProc;
     wc.lpszClassName = "Traffic";
     wc.hInstance = GetModuleHandle(NULL);
-    RegisterClass(&wc); // Let windows create the window
+    RegisterClass(&wc);
 
     HWND hwnd = CreateWindowEx(0, wc.lpszClassName, "Traffic",
                                WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, WIDTH, HEIGHT,
                                NULL, NULL, wc.hInstance, NULL);
 
-    // setup roads
     setupScreen(hwnd, WIDTH, HEIGHT);
-    setupRoads();
+    // initialise our cars array and setup roads
+    initCars();
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
@@ -86,7 +76,6 @@ int main() {
         DispatchMessage(&msg);
     }
 
-    // Cleanup
     DeleteObject(hBitmap);
     DeleteDC(hdcMem);
     ReleaseDC(hwnd, hdc);

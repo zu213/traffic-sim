@@ -56,18 +56,14 @@ void displayDigit(int x, int y, int digit, DWORD *pixels){
 }
 
 void displayPlus(int x, int y, DWORD *pixels){
-    for(int i = -10; i < 10; i++){
-        pixels[x +  (y + i) * WIDTH] = RGB(255, 255, 255);
-    }
-    for(int i = -10; i < 10; i++){
-        pixels[x + i + (y) * WIDTH] = RGB(255, 255, 255);
-    }
+    for(int i = -10; i < 10; i++) pixels[x +  (y + i) * WIDTH] = RGB(255, 255, 255);
+    for(int i = -10; i < 10; i++) pixels[x + i + (y) * WIDTH] = RGB(255, 255, 255);
 }
 
 void displayNumber(int x, int y, int number, DWORD *pixels){
     if(number > 99){
-        number = 99;
         displayPlus(x + 34, y, pixels);
+        return;
     }
     int digit = number % 10;
     int tens = number / 10;
@@ -81,9 +77,7 @@ void changeOverflow(int index, int increase, coord entryCoords[], DWORD *pixels)
     if(increase){
         overflows[index]++;
     }else{
-        if(overflows[index] < 1){
-            return;
-        }
+        if(overflows[index] < 1) return;
         overflows[index]--;
     }
     if(overflows[index] < 101){
@@ -96,11 +90,9 @@ void changeOverflow(int index, int increase, coord entryCoords[], DWORD *pixels)
         }
         else if(entryCoords[index].y > topRoadHeight + halfRoadWidth){
             displayNumber(entryCoords[index].x, entryCoords[index].y + roadWidth, overflows[index], pixels);
-
         }
         else {
             displayNumber(entryCoords[index].x, entryCoords[index].y - roadWidth, overflows[index], pixels);
-
         }
     }
 }
