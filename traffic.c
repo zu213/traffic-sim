@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
 
 #include "traffic-animation/roads.h"
 
@@ -13,16 +15,67 @@ HDC hdcMem;
 HBITMAP hBitmap;
 BITMAPINFO bitmapInfo;
 
+int isNumber(const char *str) {
+    if (*str == '\0') return 0;  // Empty input
+
+    while (*str) {
+        if (!isdigit(*str)) return 0;  // If any non-digit found, return false
+        str++;
+    }
+    return 1;  // All characters are digits
+}
+
 void setupLoop() {
-    wchar_t move[50];
-    wprintf(L"WELCOME TO CHESS, TYPE 'start' TO BEGIN, 'start-record' TO PLAY WITH MOVE HISTORY OR 'exit' TO END \n");
+    char move[50];
+    printf("WELCOME TO TRAFFIC, Type a number(2-10) to start \n");
+    int entries;
+    // Get the number of entries
+    while (1) {
+        printf("Enter a number: ");
+        
+        if (scanf("%49[^\n]", move) == 1) {  // Read input (max 49 chars)
+            while (getchar() != '\n');  // Clear buffer
+            
+            if (isNumber(move)) {  // Check if input is a valid number
+                entries = atoi(move);  // Convert to integer
+                if (entries >= 2 && entries <= 10) {
+                    printf("Valid number: %d\n", entries);
+                    break;  // Exit loop if valid
+                }
+            }
+        }
+        printf("Invalid input! Please enter a number between 2 and 10.\n");
+    }
 
-    // main loop wait for input
+    int departureTraffic[entries];  // Store values
+    for(int i = 0; i< entries; i++){
+        while (1) {
+            printf("Enter traffic departure values for entry %d: \n", i);
+            
+            if (scanf("%49[^\n]", move) == 1) {  // Read input (max 49 chars)
+                while (getchar() != '\n');  // Clear buffer
+                
+                if (isNumber(move)) {  // Check if input is a valid number
+                    departureTraffic[i] = atoi(move);  // Convert to integer
+                    if (departureTraffic[i] >= 1 && departureTraffic[i] <= 100) {
+                        printf("Valid number: %d\n", departureTraffic[i]);
+                        break;  // Exit loop if valid
+                    }
+                }
+            }
+            printf("Invalid input! Please enter a number between 1 and 100.\n");
+        }
+    }
+
+
+    // Get traffic arriving each 1000 frames
+    printf("Enter how much traffic arrives at each entrance in the form (1,2,3,10) \n");
     while(1){
-        if (wscanf(L"%99[^\n]", move) == 1){
-            while (getwchar() != '\n');
+        if (scanf("%99[^\n]", move) == 1){
+            while (getchar() != '\n');
+            int arrivalTraffic[entries];
+            for(int i =0; i<sizeof(move)/sizeof(move[0]); i++){
 
-            if ((wcscmp(move, L"start") == 0)){
             }
         }
     }
@@ -70,6 +123,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 }
 
 int main() {
+    // Gather user inputs
+    setupLoop();
+
     // Setup window
     WNDCLASS wc = {0};
     wc.lpfnWndProc = WindowProc;
