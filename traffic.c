@@ -13,6 +13,21 @@ HDC hdcMem;
 HBITMAP hBitmap;
 BITMAPINFO bitmapInfo;
 
+void setupLoop() {
+    wchar_t move[50];
+    wprintf(L"WELCOME TO CHESS, TYPE 'start' TO BEGIN, 'start-record' TO PLAY WITH MOVE HISTORY OR 'exit' TO END \n");
+
+    // main loop wait for input
+    while(1){
+        if (wscanf(L"%99[^\n]", move) == 1){
+            while (getwchar() != '\n');
+
+            if ((wcscmp(move, L"start") == 0)){
+            }
+        }
+    }
+}
+
 // function to handle screen setup
 void setupScreen(HWND hwnd, WPARAM wParam, LPARAM lParam){
     hdc = GetDC(hwnd);
