@@ -7,9 +7,7 @@ int *overflows;
 
 void initOverflows(int entries){
     overflows = (int *)malloc(entries * sizeof(int));
-    for(int i = 0; i < entries; i++){
-        overflows[i] = 0;
-    }
+    for(int i = 0; i < entries; i++) overflows[i] = 0;
 }
 
 void clearNumber(int x, int y, DWORD *pixels){
@@ -25,44 +23,28 @@ void displayDigit(int x, int y, int digit, DWORD *pixels){
 
     // horizontal lines
     if(digit == 2 || digit == 3 || digit == 5 || digit == 6 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = -counterNumberSize/2; i < counterNumberSize/2; i++){
-            pixels[x + i + (y + counterNumberSize/2 - 1) * WIDTH] = white;
-        }
+        for(int i = -counterNumberSize/2; i < counterNumberSize/2; i++) pixels[x + i + (y + counterNumberSize/2 - 1) * WIDTH] = white;
     }
     if(digit == 2 || digit == 3 || digit == 5 || digit == 6 || digit == 7 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = -counterNumberSize/2; i < counterNumberSize/2; i++){
-            pixels[x + i + (y - counterNumberSize/2 + 1) * WIDTH] = white;
-        }
+        for(int i = -counterNumberSize/2; i < counterNumberSize/2; i++) pixels[x + i + (y - counterNumberSize/2 + 1) * WIDTH] = white;
     }
     if(digit == 2 || digit == 3 || digit == 4 || digit == 5 || digit == 6 || digit == 8 || digit == 9){
-        for(int i = -counterNumberSize/2; i < counterNumberSize/2; i++){
-            pixels[x + i + (y) * WIDTH] = white;
-        }
+        for(int i = -counterNumberSize/2; i < counterNumberSize/2; i++) pixels[x + i + (y) * WIDTH] = white;
     }
 
     // vertical lines
     if(digit == 1 || digit == 3 || digit == 4 || digit == 5 || digit == 6 || digit == 7 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = 0; i < counterNumberSize/2; i++){
-            pixels[x + counterNumberSize/2 - 1 + (y + i) * WIDTH] = white;
-        }
+        for(int i = 0; i < counterNumberSize/2; i++) pixels[x + counterNumberSize/2 - 1 + (y + i) * WIDTH] = white;
     }
     if(digit == 1 || digit == 2 || digit == 3 || digit == 4 || digit == 7 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = -counterNumberSize/2; i < 0; i++){
-            pixels[x + counterNumberSize/2 - 1 + (y + i) * WIDTH] = white;
-        }
+        for(int i = -counterNumberSize/2; i < 0; i++) pixels[x + counterNumberSize/2 - 1 + (y + i) * WIDTH] = white;
     }
     if(digit == 2 || digit == 6 || digit == 8 || digit == 0){
-        for(int i = 0; i < counterNumberSize/2; i++){
-            pixels[x - counterNumberSize/2 - 1 + (y + i) * WIDTH] = white;
-        }
+        for(int i = 0; i < counterNumberSize/2; i++) pixels[x - counterNumberSize/2 - 1 + (y + i) * WIDTH] = white;
     }
     if(digit == 4 || digit == 5 || digit == 6 || digit == 8 || digit == 9 || digit == 0){
-        for(int i = -counterNumberSize/2; i < 0; i++){
-            pixels[x - counterNumberSize/2 - 1 + (y + i) * WIDTH] = white;
-        }
+        for(int i = -counterNumberSize/2; i < 0; i++) pixels[x - counterNumberSize/2 - 1 + (y + i) * WIDTH] = white;
     }
- 
-        
 }
 
 void displayPlus(int x, int y, DWORD *pixels){
@@ -78,9 +60,7 @@ void displayNumber(int x, int y, int number, DWORD *pixels){
     int digit = number % 10;
     int tens = number / 10;
     displayDigit(x + 12, y, digit, pixels);
-    if(tens > 0){
-        displayDigit(x - 12, y , tens, pixels);
-    }
+    if(tens > 0) displayDigit(x - 12, y , tens, pixels);
 }
 
 void changeOverflow(int index, int increase, coord entryCoords[], DWORD *pixels){

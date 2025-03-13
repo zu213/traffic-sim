@@ -7,7 +7,6 @@
 
 #include "traffic-animation/roads.h"
 
-//C:\Users\evilm\mingw64\bin\gcc.exe traffic.c -o traffic.exe -lgdi32 -luser32
 // C:\Users\evilm\mingw64\bin\gcc.exe traffic.c traffic-animation/cars.c traffic-animation/constants.c traffic-animation/overflow.c traffic-animation/roads.c -o traffic.exe -lgdi32 -luser32
 
 HDC hdc;
@@ -19,32 +18,26 @@ int *departureTraffic;
 int *incomingTraffic;
 
 int isNumber(const char *str) {
-    if (*str == '\0') return 0;  // Empty input
-
+    if (*str == '\0') return 0;
     while (*str) {
-        if (!isdigit(*str)) return 0;  // If any non-digit found, return false
+        if (!isdigit(*str)) return 0;
         str++;
     }
-    return 1;  // All characters are digits
+    return 1;
 }
 
 void setupLoop() {
     char move[50];
-    printf("WELCOME TO TRAFFIC, Type a number(2-10) to start \n");
+    printf("WELCOME TO TRAFFIC, Type the number(2-10) of desired entrues to start. \n");
 
     // Get the number of entries
     while (1) {
-        printf("Enter a number: ");
-        
+        printf("Enter a number: "); 
         if (scanf("%49[^\n]", move) == 1) {
             while (getchar() != '\n');
-            
             if (isNumber(move)) {
                 entries = atoi(move);
-                if (entries >= 2 && entries <= 10) {
-                    printf("Valid number: %d\n", entries);
-                    break;
-                }
+                if (entries >= 2 && entries <= 10) break;
             }
         }
         printf("Invalid input! Please enter a number between 2 and 10.\n");
@@ -56,44 +49,32 @@ void setupLoop() {
     for(int i = 0; i< entries; i++){
         while (1) {
             printf("Enter traffic departure values for entry %d: \n", i + 1);
-            
             if (scanf("%49[^\n]", move) == 1) {
                 while (getchar() != '\n');
-                
                 if (isNumber(move)) {
                     departureTraffic[i] = atoi(move);
-                    if (departureTraffic[i] >= 1 && departureTraffic[i] <= 100) {
-                        printf("Valid number: %d\n", departureTraffic[i]);
-                        break;
-                    }
+                    if (departureTraffic[i] >= 1 && departureTraffic[i] <= 100) break;
                 }
             }
             printf("Invalid input! Please enter a number between 1 and 100.\n");
         }
     }
-
 
     // Get traffic arriving each 1000 frames
     printf("Enter how much traffic arrives at each entrance in the form (1,2,3,10) \n");
     for(int i = 0; i< entries; i++){
         while (1) {
             printf("Enter traffic arrival values for entry %d: \n", i + 1);
-            
             if (scanf("%49[^\n]", move) == 1) {
                 while (getchar() != '\n');
-                
                 if (isNumber(move)) { 
                     incomingTraffic[i] = atoi(move);
-                    if (incomingTraffic[i] >= 1 && incomingTraffic[i] <= 100) {
-                        printf("Valid number: %d\n", incomingTraffic[i]);
-                        break;
-                    }
+                    if (incomingTraffic[i] >= 1 && incomingTraffic[i] <= 100) break;
                 }
             }
             printf("Invalid input! Please enter a number between 1 and 100.\n");
         }
     }
-
 }
 
 // function to handle screen setup
@@ -154,10 +135,7 @@ int main() {
 
     setupScreen(hwnd, WIDTH, HEIGHT);
     
-        // initialise our cars array and setup roads
-        for(int i = 0; i < entries; i++){
-            printf("%d \n", departureTraffic[i]);
-        }
+    // initialise our cars array and setup roads
     initCars(entries, departureTraffic, incomingTraffic);
 
     MSG msg;

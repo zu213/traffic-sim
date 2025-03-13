@@ -143,9 +143,7 @@ void initCars(int entries, int departureTraffic[], int incomingTraffic[]){
 void animateTraffic(){
     Sleep(1);
     for(int i =0; i< ENTRIES; i++){
-        if((frameCounter * arrivalTraffic[i]) % 1000 < arrivalTraffic[i]){
-            changeOverflow(i, 1, entryCoords, pixels);
-        }
+        if((frameCounter * arrivalTraffic[i]) % 1000 < arrivalTraffic[i]) changeOverflow(i, 1, entryCoords, pixels);
     }
     frameCounter += 1;
 
@@ -163,7 +161,7 @@ void animateTraffic(){
 
     if(currentExit == currentEntry) currentExit += 1; // make sure the exit /= the entry
     // Add new cars (if need be)
-    if(added < traffic[currentEntry] && clear == 1 && getOverflow(currentEntry) > 0){ //add a car
+    if(added < traffic[currentEntry] && clear == 1 && getOverflow(currentEntry) > 0){
         currentExit %= ENTRIES;
         cars[added].x = entryCoords[currentEntry].x;
         cars[added].y = entryCoords[currentEntry].y;
@@ -175,7 +173,8 @@ void animateTraffic(){
         }else{
             cars[added].xPreferred = 0;
         }
-        if(entryCoords[currentEntry].y == entryCoords[currentExit].y && entryCoords[currentEntry].y != topRoadHeight + halfRoadWidth){
+        if(entryCoords[currentEntry].y == entryCoords[currentExit].y &&
+           entryCoords[currentEntry].y != topRoadHeight + halfRoadWidth){
             cars[added].travelToMiddle = 1;
         }
         currentExit++;
