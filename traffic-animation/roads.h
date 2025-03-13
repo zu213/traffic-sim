@@ -8,6 +8,6 @@ extern DWORD pixels[WIDTH * HEIGHT];
 
 void animateTraffic();
 
-void initCars();
+void initCars(int entries, int departureTraffic[], int arrivalTraffic[]);
 
 #endif

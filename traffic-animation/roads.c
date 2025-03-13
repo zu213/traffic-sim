@@ -9,12 +9,13 @@
 #include "cars.h"
 #include "roads.h"
 
-int traffic[ENTRIES] = {1,2,3,4,5}; // How many come from each entry per round
-int arrivalTraffic[ENTRIES] = {1,2,2,2,3}; // How many cars arrive in a tick of frames(1000)
+int ENTRIES;
+int *traffic; //[ENTRIES];// = {1,2,3,4,5}; // How many come from each entry per round
+int *arrivalTraffic; //[ENTRIES];// = {1,2,2,2,3}; // How many cars arrive in a tick of frames(1000)
 
-car *cars; // Main storgae for the existing cars
+car *cars; // Main storage for the existing cars
 DWORD pixels[WIDTH * HEIGHT] = {0}; // Pixels array
-coord entryCoords[ENTRIES]; // Entry coordinates for the roads
+coord *entryCoords; //[ENTRIES]; // Entry coordinates for the roads
 
 int frameCounter = 0;
 int numberOfCars = 0; // How many cars their are currently
@@ -125,10 +126,17 @@ void setupRoads(){
     changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 1);
 }
 
-void initCars(){
+void initCars(int entries, int departureTraffic[], int incomingTraffic[]){
+
+    ENTRIES = entries;
+    arrivalTraffic = incomingTraffic;
+    traffic = departureTraffic;
+    entryCoords = (coord *)malloc(entries * sizeof(coord));
+
     int carsLength = maxValue(traffic);
     cars = (car *)malloc(carsLength * sizeof(car));
     setupRoads();
+    initOverflows(entries);
 }
 
 // Main animation function for moving/adding/counting/deleting traffic

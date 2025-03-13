@@ -14,6 +14,9 @@ HDC hdc;
 HDC hdcMem;
 HBITMAP hBitmap;
 BITMAPINFO bitmapInfo;
+int entries;
+int *departureTraffic;
+int *incomingTraffic;
 
 int isNumber(const char *str) {
     if (*str == '\0') return 0;  // Empty input
@@ -28,38 +31,40 @@ int isNumber(const char *str) {
 void setupLoop() {
     char move[50];
     printf("WELCOME TO TRAFFIC, Type a number(2-10) to start \n");
-    int entries;
+
     // Get the number of entries
     while (1) {
         printf("Enter a number: ");
         
-        if (scanf("%49[^\n]", move) == 1) {  // Read input (max 49 chars)
-            while (getchar() != '\n');  // Clear buffer
+        if (scanf("%49[^\n]", move) == 1) {
+            while (getchar() != '\n');
             
-            if (isNumber(move)) {  // Check if input is a valid number
-                entries = atoi(move);  // Convert to integer
+            if (isNumber(move)) {
+                entries = atoi(move);
                 if (entries >= 2 && entries <= 10) {
                     printf("Valid number: %d\n", entries);
-                    break;  // Exit loop if valid
+                    break;
                 }
             }
         }
         printf("Invalid input! Please enter a number between 2 and 10.\n");
     }
 
-    int departureTraffic[entries];  // Store values
+    departureTraffic = (int *)malloc(entries * sizeof(int));
+    incomingTraffic = (int *)malloc(entries * sizeof(int));
+
     for(int i = 0; i< entries; i++){
         while (1) {
-            printf("Enter traffic departure values for entry %d: \n", i);
+            printf("Enter traffic departure values for entry %d: \n", i + 1);
             
-            if (scanf("%49[^\n]", move) == 1) {  // Read input (max 49 chars)
-                while (getchar() != '\n');  // Clear buffer
+            if (scanf("%49[^\n]", move) == 1) {
+                while (getchar() != '\n');
                 
-                if (isNumber(move)) {  // Check if input is a valid number
-                    departureTraffic[i] = atoi(move);  // Convert to integer
+                if (isNumber(move)) {
+                    departureTraffic[i] = atoi(move);
                     if (departureTraffic[i] >= 1 && departureTraffic[i] <= 100) {
                         printf("Valid number: %d\n", departureTraffic[i]);
-                        break;  // Exit loop if valid
+                        break;
                     }
                 }
             }
@@ -70,15 +75,25 @@ void setupLoop() {
 
     // Get traffic arriving each 1000 frames
     printf("Enter how much traffic arrives at each entrance in the form (1,2,3,10) \n");
-    while(1){
-        if (scanf("%99[^\n]", move) == 1){
-            while (getchar() != '\n');
-            int arrivalTraffic[entries];
-            for(int i =0; i<sizeof(move)/sizeof(move[0]); i++){
-
+    for(int i = 0; i< entries; i++){
+        while (1) {
+            printf("Enter traffic arrival values for entry %d: \n", i + 1);
+            
+            if (scanf("%49[^\n]", move) == 1) {
+                while (getchar() != '\n');
+                
+                if (isNumber(move)) { 
+                    incomingTraffic[i] = atoi(move);
+                    if (incomingTraffic[i] >= 1 && incomingTraffic[i] <= 100) {
+                        printf("Valid number: %d\n", incomingTraffic[i]);
+                        break;
+                    }
+                }
             }
+            printf("Invalid input! Please enter a number between 1 and 100.\n");
         }
     }
+
 }
 
 // function to handle screen setup
@@ -138,8 +153,12 @@ int main() {
                                NULL, NULL, wc.hInstance, NULL);
 
     setupScreen(hwnd, WIDTH, HEIGHT);
-    // initialise our cars array and setup roads
-    initCars();
+    
+        // initialise our cars array and setup roads
+        for(int i = 0; i < entries; i++){
+            printf("%d \n", departureTraffic[i]);
+        }
+    initCars(entries, departureTraffic, incomingTraffic);
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {

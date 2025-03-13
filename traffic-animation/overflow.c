@@ -1,6 +1,16 @@
 #include "overflow.h"
+#include "constants.h"
+#include <stdio.h>
 
-int overflows[ENTRIES] = {0};
+
+int *overflows;
+
+void initOverflows(int entries){
+    overflows = (int *)malloc(entries * sizeof(int));
+    for(int i = 0; i < entries; i++){
+        overflows[i] = 0;
+    }
+}
 
 void clearNumber(int x, int y, DWORD *pixels){
     for(int i = -counterNumberSize/2 - 1; i < counterNumberSize/2 + 1; i++){
@@ -76,8 +86,7 @@ void displayNumber(int x, int y, int number, DWORD *pixels){
 void changeOverflow(int index, int increase, coord entryCoords[], DWORD *pixels){
     if(increase){
         overflows[index]++;
-    }else{
-        if(overflows[index] < 1) return;
+    }else if(overflows[index] > 0){
         overflows[index]--;
     }
     if(overflows[index] < 101){
