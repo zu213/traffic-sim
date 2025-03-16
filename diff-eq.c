@@ -1,13 +1,5 @@
-#include <windows.h>
-#include <stdio.h>
-#include <time.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
 
-#include "traffic-animation/roads.h"
-
-// C:\Users\evilm\mingw64\bin\gcc.exe traffic.c traffic-animation/cars.c traffic-animation/constants.c traffic-animation/overflow.c traffic-animation/roads.c -o traffic.exe -lgdi32 -luser32
+#include "diff-eq-solver/diff-eq-solver.h"
 
 int entries;
 int *incomingTraffic;
