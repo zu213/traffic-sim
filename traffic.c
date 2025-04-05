@@ -34,11 +34,15 @@ void setupLoop() {
     while (1) {
         printf("Enter a number: "); 
         if (scanf("%49[^\n]", move) == 1) {
-            while (getchar() != '\n');
+            while (getchar() != '\n'  && getchar() != EOF);
             if (isNumber(move)) {
                 entries = atoi(move);
                 if (entries >= 2 && entries <= 10) break;
             }
+        } else {
+            // Flush
+            int c;
+            while ((c = getchar()) != '\n' && c != EOF);
         }
         printf("Invalid input! Please enter a number between 2 and 10.\n");
     }
@@ -55,6 +59,9 @@ void setupLoop() {
                     departureTraffic[i] = atoi(move);
                     if (departureTraffic[i] >= 1 && departureTraffic[i] <= 100) break;
                 }
+            } else {
+                int c;
+                while ((c = getchar()) != '\n' && c != EOF);
             }
             printf("Invalid input! Please enter a number between 1 and 100.\n");
         }
@@ -71,6 +78,9 @@ void setupLoop() {
                     incomingTraffic[i] = atoi(move);
                     if (incomingTraffic[i] >= 1 && incomingTraffic[i] <= 100) break;
                 }
+            } else {
+                int c;
+                while ((c = getchar()) != '\n' && c != EOF);
             }
             printf("Invalid input! Please enter a number between 1 and 100.\n");
         }

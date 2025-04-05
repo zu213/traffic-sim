@@ -26,10 +26,9 @@ int clear = 1;
 int currentExit = 0;
 
 // Helper function to find max value in an array
-int maxValue(int * arr){
+int maxValue(int * arr, int len){
     int max = 0;
-    int length = sizeof(arr) / sizeof(1);
-    for(int i = 0; i < length; i++){
+    for(int i = 0; i < len; i++){
         if(arr[i] > max){
             max = arr[i];
         }
@@ -133,7 +132,7 @@ void initCars(int entries, int departureTraffic[], int incomingTraffic[]){
     traffic = departureTraffic;
     entryCoords = (coord *)malloc(entries * sizeof(coord));
 
-    int carsLength = maxValue(traffic);
+    int carsLength = maxValue(traffic, ENTRIES);
     cars = (car *)malloc(carsLength * sizeof(car));
     setupRoads();
     initOverflows(entries);
@@ -159,10 +158,9 @@ void animateTraffic(){
         changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 1);
     }
 
-    if(currentExit == currentEntry) currentExit += 1; // make sure the exit /= the entry
+    if(currentExit == currentEntry) currentExit = (currentEntry + 1) % ENTRIES; // make sure the exit /= the entry
     // Add new cars (if need be)
     if(added < traffic[currentEntry] && clear == 1 && getOverflow(currentEntry) > 0){
-        currentExit %= ENTRIES;
         cars[added].x = entryCoords[currentEntry].x;
         cars[added].y = entryCoords[currentEntry].y;
         cars[added].destX = entryCoords[currentExit].x;
@@ -178,15 +176,18 @@ void animateTraffic(){
             cars[added].travelToMiddle = 1;
         }
         currentExit++;
+        currentExit %= ENTRIES;
         added++;
         changeOverflow(currentEntry, 0, entryCoords, pixels);
         clear = 0;
     }
 
     // Check if the car is far enough from the entry so a new one can be added
-    if(abs(cars[added - 1].x - entryCoords[currentEntry].x) > roadWidth || abs(cars[added - 1].y - entryCoords[currentEntry].y) > roadWidth){
-        clear = 1;
-        if(added == traffic[currentEntry]) changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 0);
+    if(added > 0) {
+        if(abs(cars[added - 1].x - entryCoords[currentEntry].x) > roadWidth || abs(cars[added - 1].y - entryCoords[currentEntry].y) > roadWidth){
+            clear = 1;
+            if(added == traffic[currentEntry]) changeLight(entryCoords[currentEntry].x, entryCoords[currentEntry].y, 0);
+        }
     }
 
     // move each car for each frame
@@ -197,7 +198,6 @@ void animateTraffic(){
             cars[i].xPreferred = 1;
             cars[i].travelToMiddle = 0;
         }
-        int carPixel = cars[i].y * WIDTH + cars[i].x;
         //move right
         if(cars[i].x < cars[i].destX && cars[i].xPreferred && !cars[i].travelToMiddle){
             drawCar(cars[i].x, cars[i].y, 2, pixels);
@@ -224,6 +224,7 @@ void animateTraffic(){
         }
         // delete the car
         else {
+            int carPixel = cars[i].y * WIDTH + cars[i].x;
             pixels[carPixel] = RGB(0, 0, 0);
             completed += 1;
             clearCar(cars[i].x, cars[i].y, pixels);
