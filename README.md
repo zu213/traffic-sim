@@ -1,6 +1,6 @@
 # Traffic Sim 🚦
 
-<img src="./media/traffic-example.png" alt="crosstown-traffic" width="500" />
+<img src="./media/traffic.gif" alt="crosstown-traffic" width="500" />
 
 Simulate traffic through a lighted junction, controlling arrival rates and how many cars each light lets through in turn.
 
