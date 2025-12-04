@@ -5,6 +5,7 @@
 Simulate traffic through a lighted junction, controlling arrival rates and how many cars each light lets through in turn.
 
 # Usage
+
 Built to run on windows
 
 To use, run `./traffic.exe` (i.e. open cmd navigate tot he project directory and run `.\traffic.exe`) then enter the relevant inputs. You will be asked for:
@@ -16,11 +17,11 @@ To use, run `./traffic.exe` (i.e. open cmd navigate tot he project directory and
 </ul>
 
 Once inputted the simulation animations will start up.  
-To modify how fast it runs change the sleep() found on  line 144 of traffic-animation/roads.c
+To modify how fast it runs change the sleep() found on line 144 of traffic-animation/roads.c
 
 ## Compiling
 
-You will need a 64-bit Windows C compiler and this library `libwinpthread-1.dll`.  
+You will need a 64-bit Windows C compiler and this library `libwinpthread-1.dll`.
 
 For Windows, in the project root directory run:  
 `gcc.exe traffic.c traffic-animation/cars.c traffic-animation/constants.c traffic-animation/overflow.c traffic-animation/roads.c -o traffic.exe -lgdi32 -luser32`
@@ -38,18 +39,13 @@ Firstly, we should add a penalty if a car is waiting a long time it is worse, i.
 $$
 S = \sum_{i=1}^{n} f_i = \sum_{i=1}^{n} ((r_i  - x_i) \circ \frac{T^2}{2} - T)
 $$
+
 $$
 \sum_{i=1}^{n} x_i = T - n
 $$
 
-We are trying to minismise $S$, and by working out a scaling factor taking into account switching time we get release rate relative to entrance rate is. 
+We are trying to minismise $S$, and by working out a scaling factor taking into account switching time we get release rate relative to entrance rate is.
 
 $$
 x_i = \frac{r_i (T - 6n)}{\sum_{i=1}^{r_i}}
 $$
-
-## Future
-<ul>
-<li>Add the code for the  differential equations solver, the groundwork has been put in place.</li>
-<li>Add a gif the of traffic.exe running</li>
-</ul>
